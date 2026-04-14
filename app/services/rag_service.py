@@ -17,7 +17,7 @@ def run_rag_query(query: str, k: int = 10):
 
 template = """
   You are a helpful assistant, and your job is to answer the user's query based on the context provided.
-  
+
   Here's the user's query: {query}
   Here's the Context to answer user's query: {context}
 """
