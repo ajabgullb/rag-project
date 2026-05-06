@@ -1,17 +1,11 @@
-# Python-generated files
+# Environment variables — never commit these
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Common ignores
+node_modules/
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
-.venv
-.env
-
-# Pinecone local sync fingerprint (chunk set identity)
-app/db/.pinecone_manifest
-
-# Legacy local Chroma persist dir (no longer used)
-app/db/db_dir/
+*.pyc
+.DS_Storebackend/app/data/*.pdf

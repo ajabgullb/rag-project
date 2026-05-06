@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import mimetypes
 from app.core.config import get_api_key
 from llama_cloud import LlamaCloud
 from langchain_core.documents import Document
@@ -15,6 +16,7 @@ llama_api_key = get_api_key("LLAMA_CLOUD_API_KEY")
 
 def parse_doc(
   file_name: str = "Business-Model-of-a-Neobank.pdf",
+  mime_type: str | None = None,
   tier: str = "fast",
   version: str = "latest",
 ):
@@ -26,13 +28,14 @@ def parse_doc(
     raise FileNotFoundError(f"PDF not found: {file_path}")
 
   client = LlamaCloud(api_key= llama_api_key)
+  resolved_mime = mime_type or mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
 
   with file_path.open("rb") as pdf_file:
     parsed_doc = client.parsing.parse(
-      upload_file=(file_path.name, pdf_file, "application/pdf"),
-      tier = "agentic_plus",
+      upload_file=(file_path.name, pdf_file, resolved_mime),
+      tier=tier,
       version=version,
-      expand = ["text", "items"],
+      expand=["text", "items"],
     )
 
   documents = [
