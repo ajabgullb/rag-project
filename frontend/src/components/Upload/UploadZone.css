@@ -1,0 +1,35 @@
+.upload-zone {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #fafafa;
+}
+
+.upload-zone.dragover {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.upload-content p {
+  margin: 0;
+  color: #666;
+}
+
+.supported-types {
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.upload-zone input[type="file"] {
+  display: none;
+}
