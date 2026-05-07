@@ -1,11 +1,21 @@
-from langchain_ollama import OllamaLLM
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
+from app.core.config import get_api_key
 from app.utils.chuncking import create_chunk
 from app.services.parsing_service import parse_doc
 from app.services.retrieval_service import retrieve_documents
 
-llm = OllamaLLM(model="llama3.2")
+_llm: ChatGoogleGenerativeAI | None = None
+
+def _get_llm() -> ChatGoogleGenerativeAI:
+  global _llm
+  if _llm is None:
+    gemini_api_key = get_api_key("GEMINI_API_KEY")
+    if not gemini_api_key:
+      raise ValueError("Missing GEMINI_API_KEY environment variable.")
+    _llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", api_key=gemini_api_key)
+  return _llm
 
 def prepare_documents():
   parsed_doc = parse_doc()
@@ -24,7 +34,7 @@ template = """
 
 def generate_response(query: str, k: int = 10) -> str:
   prompt = PromptTemplate.from_template(template)
-  chain = prompt | llm
+  chain = prompt | _get_llm()
 
   if query == "":
     return "Query is empty"
@@ -43,7 +53,10 @@ def generate_response(query: str, k: int = 10) -> str:
     }
   )
 
-  return llm_response
+  # Ensure the content is returned as a string
+  if isinstance(llm_response.content, list):
+    return "\n".join(map(str, llm_response.content))
+  return llm_response.content
 
 
 
