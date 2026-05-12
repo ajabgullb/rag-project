@@ -17,6 +17,8 @@ from app.models.response_models import RagPromptResponse
 from app.services.ingestion_service import create_task, get_task, run_ingestion
 from app.services.rag_service import generate_response
 
+from app.agents.graph import app as rag_app
+
 app = FastAPI()
 
 app.add_middleware(
@@ -133,8 +135,19 @@ async def login(body: AuthRequest) -> AuthResponse:
 @app.post("/query", response_model=RagPromptResponse)
 async def query(body: RagPromptRequest, authorization: str | None = Header(default=None)) -> RagPromptResponse:
   _require_auth(authorization)
-  text = generate_response(query=body.prompt, k=body.k)
-  return RagPromptResponse(response=text)
+
+  result = await rag_app.ainvoke(
+    {
+      "query": body.prompt,
+      "docs": [],
+      "rewrite_count": 3,
+      "web_search_needed": False,
+      "generation": "",
+      "response": ""
+    }
+  )
+
+  return RagPromptResponse(response=result["response"])
 
 
 @app.post("/ingestion/upload", response_model=IngestionCreateResponse)

@@ -3,7 +3,7 @@ from app.dsa.priority_queue import Document, PriorityQueue
 from app.services.embedding_service import get_embeddings_model
 
 
-def retrieve_documents(query: str, k: int = 10) -> list[dict]:
+def retrieve_documents(query: str, k: int = 3) -> list[dict]:
   if not query:
     raise ValueError("Query cannot be empty.")
 

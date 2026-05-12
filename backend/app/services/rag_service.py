@@ -1,4 +1,5 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 
 from app.core.config import get_api_key
@@ -6,15 +7,22 @@ from app.utils.chuncking import create_chunk
 from app.services.parsing_service import parse_doc
 from app.services.retrieval_service import retrieve_documents
 
-_llm: ChatGoogleGenerativeAI | None = None
+_llm: ChatOpenAI | None = None
 
-def _get_llm() -> ChatGoogleGenerativeAI:
+def _get_llm() -> ChatOpenAI:
   global _llm
   if _llm is None:
-    gemini_api_key = get_api_key("GEMINI_API_KEY")
-    if not gemini_api_key:
+    openai_api_key = get_api_key("OPENAI_API_KEY")
+    if not openai_api_key:
       raise ValueError("Missing GEMINI_API_KEY environment variable.")
-    _llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", api_key=gemini_api_key)
+    
+    _llm = ChatOpenAI(
+      model="gpt-5-nano",
+      api_key=openai_api_key,
+      temperature=0,
+      disable_streaming=False
+    )
+  
   return _llm
 
 def prepare_documents():
