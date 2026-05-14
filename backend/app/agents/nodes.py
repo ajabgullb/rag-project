@@ -1,3 +1,5 @@
+import asyncio
+
 from app.agents.state import AgentState
 from app.services.retrieval_service import retrieve_documents
 from app.services.rag_service import generate_response
@@ -7,14 +9,22 @@ from langchain_core.documents import Document
 from app.agents.tools import web_search_tool
 
 # Retrieve Document Node
-def retrieve (state: AgentState) -> AgentState:
+async def retrieve (state: AgentState) -> AgentState:
   """Return the retrieved docs from the vectorstore"""
-  
-  state['docs'] = retrieve_documents(state['query'])
+
+  query = state["query"]
+  loop     = asyncio.get_event_loop()
+
+  raw_docs = await loop.run_in_executor(
+    None,
+    retrieve_documents, query,
+  )
+
+  state['docs'] = raw_docs
   return state
 
 # Grade Document Node
-def grade_documents (state: AgentState) -> AgentState:
+async def grade_documents (state: AgentState) -> AgentState:
   """
   Filters state["documents"] down to only the relevant ones.
   Also sets web_search_needed=True if nothing survives the filter.
@@ -25,18 +35,19 @@ def grade_documents (state: AgentState) -> AgentState:
 
   filtered_docs = []
 
-  for doc in docs:
-    print(doc)
-    result = document_grader.invoke({
+  async def grade_one(doc):
+    result = await document_grader.ainvoke({
       "question": query,
-      "document": doc["content"]
+      "document": doc["content"] if doc["content"] else ""
     })
-
-    if result.binary_score == "yes":
-      filtered_docs.append(doc)
     
-    if not filtered_docs:
-      state['web_search_needed'] = True
+    return doc if result.binary_score == "yes" else None
+
+  results = await asyncio.gather(*[grade_one(doc) for doc in docs])
+
+  filtered_docs     = [doc for doc in results if doc is not None]
+  if not filtered_docs:
+    state['web_search_needed'] = True
   
   return state
 
